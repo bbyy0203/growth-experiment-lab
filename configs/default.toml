@@ -1,0 +1,57 @@
+[project]
+random_seed = 20261015
+
+[experiment]
+n_users = 100000
+treatment_share = 0.5
+unit = "user_id"
+assignment = "first_assignment"
+estimand = "intention_to_treat"
+segment = "is_new_user"
+
+[inference]
+alpha = 0.05
+power = 0.80
+confidence_level = 0.95
+
+[metrics.next_day_retention]
+role = "primary"
+kind = "binary"
+control_baseline = 0.30
+treatment_effect = 0.01
+
+[metrics.clicked]
+role = "secondary"
+kind = "binary"
+control_baseline = 0.20
+treatment_effect = 0.015
+multiple_testing_family = "secondary_holm"
+
+[metrics.watch_time_minutes]
+role = "secondary"
+kind = "continuous"
+control_mean = 18.0
+treatment_effect = 1.0
+include_zero_users = true
+multiple_testing_family = "secondary_holm"
+
+[metrics.negative_feedback]
+role = "guardrail"
+kind = "binary"
+control_baseline = 0.04
+treatment_effect = 0.003
+maximum_allowed_increase = 0.005
+
+[aa_simulation]
+n_simulations = 500
+n_users_per_simulation = 20000
+
+[observational]
+estimand = "ATE"
+propensity_model = "logistic_regression"
+weighting = "stabilized_iptw"
+main_analysis_truncate_weights = false
+sensitivity_lower_quantile = 0.01
+sensitivity_upper_quantile = 0.99
+refit_propensity_in_each_bootstrap = true
+
