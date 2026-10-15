@@ -9,8 +9,8 @@ A/B 实验设计、质量检查、效果评估与基于 IPTW 的观察性因果�
 
 ## 当前状态
 
-目前处于阶段 1：工程骨架与统计契约。当前版本只包含配置读取、配置校验、基础 CLI
-和文档框架，尚未实现数据生成、A/B 分析、CUPED 或 IPTW。
+目前完成至阶段 2A：工程骨架、统计契约和可复现的合成数据生成。当前版本尚未实现
+DuckDB 分析底表、A/B 显著性检验、CUPED 或 IPTW 估计。
 
 ## 环境
 
@@ -31,9 +31,16 @@ python -m pip install -e ".[dev]"
 ```bash
 python -m growth_experiment_lab --help
 python -m growth_experiment_lab validate-config --config configs/default.toml
+python -m growth_experiment_lab generate-data --config configs/default.toml
 ```
 
-未来阶段计划提供一条端到端命令，但在实现前不会展示虚构输出。
+数据文件默认写入 `data/raw/`，真实处理效应元数据写入
+`data/metadata/true_effects.json`。如文件已存在，命令会拒绝覆盖；只有显式添加
+`--overwrite` 才会替换。完整生成数据默认不纳入版本控制。
+
+生成器同时创建随机实验数据和带可观测混杂的观察性数据。其结构与生成方法见
+[`docs/synthetic_data.md`](docs/synthetic_data.md)，字段定义见
+[`docs/data_dictionary.md`](docs/data_dictionary.md)。
 
 ## 验证
 
@@ -57,4 +64,3 @@ python -m ruff check .
 ## 许可证
 
 MIT License，详见 [LICENSE](LICENSE)。
-

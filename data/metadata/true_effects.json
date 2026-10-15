@@ -1,0 +1,63 @@
+{
+  "random_seed": 20261015,
+  "n_users": 100000,
+  "data_generation_version": "1.0",
+  "true_sample_ate": {
+    "randomized": {
+      "clicked": 0.014877738098915717,
+      "next_day_retention": 0.010000000000000009,
+      "negative_feedback": 0.0027353009695154085,
+      "watch_time_minutes": 1.0
+    },
+    "observational": {
+      "clicked": 0.014878974708088603,
+      "next_day_retention": 0.010000000000000007,
+      "negative_feedback": 0.0027400997833526763,
+      "watch_time_minutes": 1.0
+    }
+  },
+  "nominal_generation_parameters": {
+    "next_day_retention": {
+      "control_baseline": 0.3,
+      "treatment_effect": 0.01
+    },
+    "clicked": {
+      "control_baseline": 0.2,
+      "treatment_effect": 0.015
+    },
+    "watch_time_minutes": {
+      "control_mean": 18.0,
+      "treatment_effect": 1.0
+    },
+    "negative_feedback": {
+      "control_baseline": 0.04,
+      "treatment_effect": 0.003
+    }
+  },
+  "probability_clipping": {
+    "randomized": {
+      "clicked": true,
+      "next_day_retention": false,
+      "negative_feedback": true,
+      "watch_time_minutes": false
+    },
+    "observational": {
+      "clicked": true,
+      "next_day_retention": false,
+      "negative_feedback": true,
+      "watch_time_minutes": false
+    }
+  },
+  "effects_recomputed_after_clipping": true,
+  "actual_treatment_share": {
+    "randomized": 0.50209,
+    "observational": 0.48362
+  },
+  "config_summary": {
+    "treatment_share": 0.5,
+    "experimental_unit": "user_id",
+    "estimand": "intention_to_treat",
+    "primary_metric": "next_day_retention",
+    "predefined_segment": "is_new_user"
+  }
+}

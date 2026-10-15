@@ -1,6 +1,11 @@
 [project]
 random_seed = 20261015
 
+[data_generation]
+version = "1.0"
+output_dir = "data"
+assignment_start_date = "2026-01-01"
+
 [experiment]
 n_users = 100000
 treatment_share = 0.5
@@ -55,3 +60,6 @@ sensitivity_lower_quantile = 0.01
 sensitivity_upper_quantile = 0.99
 refit_propensity_in_each_bootstrap = true
 
+[observational.generation]
+propensity_min = 0.05
+propensity_max = 0.95

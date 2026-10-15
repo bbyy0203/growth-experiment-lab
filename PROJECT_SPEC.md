@@ -36,14 +36,23 @@
 
 ## 3. 实施阶段
 
-1. 工程骨架与统计契约。
-2. 合成数据、DuckDB SQL 底表和数据质量检查。
+1. 工程骨架与统计契约（已完成）。
+2. 合成数据生成（2A，已完成）；DuckDB SQL 底表和数据质量检查留待后续阶段。
 3. 实验设计、SRM、平衡诊断和 A/A 模拟。
 4. 随机 A/B 效果评估、Holm 校正、Bootstrap、CUPED 和预定义分群。
 5. 观察性数据的 stabilized IPTW 估计与诊断。
 6. 端到端 Markdown 报告和整体质量验收。
 
 每一阶段只增加当期实际需要的模块，不预建大量空文件。
+
+## 3.1 阶段 2A 数据契约
+
+每个 `randomized` 和 `observational` 数据集分别包含 `users.parquet`、
+`assignment.parquet` 和 `outcomes.parquet`。`users` 只能包含处理前信息；`assignment`
+记录处理、真实分配概率与数据集类型；`outcomes` 只包含用户标识及四个实验期结果。
+
+随机实验分配概率恒等于配置值，观察性分配概率由文档列出的处理前协变量通过逻辑函数
+生成。潜在结果概率仅用于计算 `true_effects.json` 中的真实样本 ATE，不进入公开分析表。
 
 ## 4. A/A 契约
 
@@ -66,4 +75,3 @@
 不使用真实数据；不实现 HTML、Jinja2、Streamlit、GitHub Actions；不做自动分群、
 序贯检验、贝叶斯实验、复杂实验设计、双重稳健估计或未观测混杂修正。Notebook 仅用于
 探索，不作为正式流水线入口。
-

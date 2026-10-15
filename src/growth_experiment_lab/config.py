@@ -32,6 +32,7 @@ def validate_config(config: dict[str, Any]) -> None:
     """Validate stable invariants without implementing analytical behavior."""
     required_sections = {
         "project",
+        "data_generation",
         "experiment",
         "inference",
         "metrics",
@@ -51,6 +52,7 @@ def validate_config(config: dict[str, Any]) -> None:
     inference = config["inference"]
     metrics = config["metrics"]
     observational = config["observational"]
+    data_generation = config["data_generation"]
 
     if not isinstance(project.get("random_seed"), int):
         raise ConfigError("project.random_seed must be an integer")
@@ -100,3 +102,19 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigError("observational.estimand must be 'ATE'")
     if observational.get("weighting") != "stabilized_iptw":
         raise ConfigError("observational.weighting must be 'stabilized_iptw'")
+
+    if not isinstance(data_generation.get("version"), str):
+        raise ConfigError("data_generation.version must be a string")
+    if not isinstance(data_generation.get("output_dir"), str):
+        raise ConfigError("data_generation.output_dir must be a string")
+    generation = observational.get("generation")
+    if not isinstance(generation, dict):
+        raise ConfigError("observational.generation must be a table")
+    propensity_min = generation.get("propensity_min")
+    propensity_max = generation.get("propensity_max")
+    if not isinstance(propensity_min, (int, float)) or not 0 < propensity_min < 1:
+        raise ConfigError("observational.generation.propensity_min must be between 0 and 1")
+    if not isinstance(propensity_max, (int, float)) or not 0 < propensity_max < 1:
+        raise ConfigError("observational.generation.propensity_max must be between 0 and 1")
+    if propensity_min >= propensity_max:
+        raise ConfigError("propensity_min must be smaller than propensity_max")
