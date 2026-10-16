@@ -11,20 +11,20 @@ requires-python = ">=3.11,<3.12"
 license = { file = "LICENSE" }
 authors = [{ name = "Growth Experiment Lab contributors" }]
 dependencies = [
-    "duckdb",
-    "matplotlib",
-    "numpy",
-    "pandas",
-    "pyarrow",
-    "scikit-learn",
-    "scipy",
-    "statsmodels",
+    "duckdb>=1.0",
+    "matplotlib>=3.8",
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "pyarrow>=14",
+    "scikit-learn>=1.4",
+    "scipy>=1.11",
+    "statsmodels>=0.14",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "ruff",
+    "pytest>=8",
+    "ruff>=0.6",
 ]
 
 [project.scripts]
@@ -44,4 +44,3 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-

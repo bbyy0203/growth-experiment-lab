@@ -34,6 +34,12 @@ def validate_observational_simulation(
         estimate = formal["effects"][metric]
         naive_error = abs(estimate["naive_effect"] - true_ate)
         iptw_error = abs(estimate["iptw_ate"] - true_ate)
+        bootstrap = estimate["bootstrap"]
+        covered = None if bootstrap is None else bool(
+            bootstrap["confidence_interval_lower"]
+            <= true_ate
+            <= bootstrap["confidence_interval_upper"]
+        )
         comparison = {
             "naive_effect": estimate["naive_effect"],
             "iptw_estimate": estimate["iptw_ate"],
@@ -42,11 +48,7 @@ def validate_observational_simulation(
             "naive_absolute_error": naive_error,
             "iptw_absolute_error": iptw_error,
             "trimmed_absolute_error": abs(estimate["trimmed_iptw_ate"] - true_ate),
-            "true_ate_in_iptw_95_percent_ci": bool(
-                estimate["bootstrap"]["confidence_interval_lower"]
-                <= true_ate
-                <= estimate["bootstrap"]["confidence_interval_upper"]
-            ),
+            "true_ate_in_iptw_95_percent_ci": covered,
         }
         comparisons[metric] = comparison
         (improved if iptw_error < naive_error else not_improved).append(metric)

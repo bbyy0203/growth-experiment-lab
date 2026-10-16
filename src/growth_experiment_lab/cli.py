@@ -29,6 +29,8 @@ from growth_experiment_lab.observational_validation import (
     ObservationalValidationError,
     validate_observational_simulation,
 )
+from growth_experiment_lab.pipeline import run_all
+from growth_experiment_lab.portfolio import PortfolioError, export_examples
 from growth_experiment_lab.propensity import PropensityError
 from growth_experiment_lab.randomization_diagnostics import RandomizationDiagnosticError
 from growth_experiment_lab.simulation_validation import (
@@ -168,6 +170,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     observational_validation_parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
     observational_validation_parser.add_argument("--overwrite", action="store_true")
+    run_all_parser = subparsers.add_parser("run-all", help="run the complete portfolio pipeline")
+    run_all_parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    run_all_parser.add_argument("--overwrite", action="store_true")
+    run_all_parser.add_argument("--skip-aa", action="store_true")
+    run_all_parser.add_argument("--skip-bootstrap", action="store_true")
+    run_all_parser.add_argument("--skip-simulation-validation", action="store_true")
+    export_parser = subparsers.add_parser(
+        "export-examples", help="export approved demo reports and plots"
+    )
+    export_parser.add_argument("--config", default="configs/demo.toml")
+    export_parser.add_argument("--overwrite", action="store_true")
     return parser
 
 
@@ -374,6 +387,31 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Synthetic validation only: {report['synthetic_validation_only']}")
         print(f"Metrics compared: {len(report['comparisons'])}")
         print(f"JSON report: {config['observational']['simulation_validation_path']}")
+        return 0
+
+    if args.command == "run-all":
+        try:
+            run_all(
+                args.config,
+                overwrite=args.overwrite,
+                skip_aa=args.skip_aa,
+                skip_bootstrap=args.skip_bootstrap,
+                skip_simulation_validation=args.skip_simulation_validation,
+            )
+        except Exception as error:
+            parser.error(str(error))
+        return 0
+
+    if args.command == "export-examples":
+        try:
+            config = load_config(args.config)
+            outputs = export_examples(config, overwrite=args.overwrite)
+        except (ConfigError, PortfolioError) as error:
+            parser.error(str(error))
+        print(
+            f"Exported {len(outputs)} synthetic demo artifacts to "
+            f"{config['portfolio']['examples_dir']}"
+        )
         return 0
 
     parser.error(f"Unknown command: {args.command}")

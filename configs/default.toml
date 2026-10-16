@@ -101,6 +101,11 @@ weight_plot_path = "reports/generated/iptw_weight_distribution.png"
 balance_plot_path = "reports/generated/iptw_balance_love_plot.png"
 simulation_validation_path = "reports/generated/observational_simulation_validation.json"
 
+[portfolio]
+report_path = "reports/generated/portfolio_report.md"
+examples_dir = "examples"
+config_label = "default"
+
 [observational.generation]
 propensity_min = 0.05
 propensity_max = 0.95

@@ -43,6 +43,7 @@ def validate_config(config: dict[str, Any]) -> None:
         "metrics",
         "aa_simulation",
         "observational",
+        "portfolio",
     }
     missing = required_sections.difference(config)
     if missing:
@@ -60,6 +61,7 @@ def validate_config(config: dict[str, Any]) -> None:
     ab_analysis = config["ab_analysis"]
     metrics = config["metrics"]
     observational = config["observational"]
+    portfolio = config["portfolio"]
     data_generation = config["data_generation"]
     mart = config["mart"]
     data_quality = config["data_quality"]
@@ -135,6 +137,11 @@ def validate_config(config: dict[str, Any]) -> None:
     ):
         if not isinstance(observational.get(key), str):
             raise ConfigError(f"observational.{key} must be a string")
+    for key in ("report_path", "examples_dir", "config_label"):
+        if not isinstance(portfolio.get(key), str) or not portfolio[key]:
+            raise ConfigError(f"portfolio.{key} must be a non-empty string")
+    if portfolio["config_label"] not in {"default", "demo", "ci"}:
+        raise ConfigError("portfolio.config_label must be default, demo, or ci")
 
     if not isinstance(data_generation.get("version"), str):
         raise ConfigError("data_generation.version must be a string")

@@ -1,0 +1,95 @@
+[project]
+random_seed = 20261215
+[data_generation]
+version = "1.0"
+output_dir = "data"
+assignment_start_date = "2026-01-01"
+[mart]
+sql_dir = "sql"
+[data_quality]
+report_path = "reports/generated/data_quality_summary.json"
+[experiment]
+n_users = 3000
+treatment_share = 0.5
+unit = "user_id"
+assignment = "first_assignment"
+estimand = "intention_to_treat"
+segment = "is_new_user"
+[inference]
+alpha = 0.05
+power = 0.80
+confidence_level = 0.95
+alternative = "two-sided"
+[experiment_design]
+primary_metric = "next_day_retention"
+primary_absolute_mde = 0.01
+report_path = "reports/generated/experiment_design.json"
+[randomization_diagnostics]
+srm_alpha = 0.001
+smd_warning_threshold = 0.10
+report_path = "reports/generated/randomization_diagnostics.json"
+balance_plot_path = "reports/generated/randomization_balance.png"
+aa_plot_path = "reports/generated/aa_pvalue_histogram.png"
+[ab_analysis]
+bootstrap_seed = 20261217
+bootstrap_resamples = 20
+results_path = "reports/generated/ab_results.json"
+markdown_path = "reports/generated/ab_analysis.md"
+effect_plot_path = "reports/generated/ab_effect_forest.png"
+cuped_plot_path = "reports/generated/cuped_comparison.png"
+subgroup_plot_path = "reports/generated/subgroup_effects.png"
+simulation_validation_path = "reports/generated/simulation_estimate_validation.json"
+[metrics.next_day_retention]
+role = "primary"
+kind = "binary"
+control_baseline = 0.30
+treatment_effect = 0.01
+[metrics.clicked]
+role = "secondary"
+kind = "binary"
+control_baseline = 0.20
+treatment_effect = 0.015
+multiple_testing_family = "secondary_holm"
+[metrics.watch_time_minutes]
+role = "secondary"
+kind = "continuous"
+control_mean = 18.0
+treatment_effect = 1.0
+include_zero_users = true
+multiple_testing_family = "secondary_holm"
+[metrics.negative_feedback]
+role = "guardrail"
+kind = "binary"
+control_baseline = 0.04
+treatment_effect = 0.003
+maximum_allowed_increase = 0.005
+[aa_simulation]
+n_simulations = 20
+n_users_per_simulation = 1000
+random_seed = 20261216
+alpha = 0.05
+[observational]
+estimand = "ATE"
+propensity_model = "logistic_regression"
+weighting = "stabilized_iptw"
+main_analysis_truncate_weights = false
+sensitivity_lower_quantile = 0.01
+sensitivity_upper_quantile = 0.99
+refit_propensity_in_each_bootstrap = true
+causal_bootstrap_seed = 20261218
+causal_bootstrap_resamples = 10
+positivity_threshold = 0.05
+extreme_share_warning_threshold = 0.01
+results_path = "reports/generated/observational_results.json"
+markdown_path = "reports/generated/observational_analysis.md"
+overlap_plot_path = "reports/generated/propensity_overlap.png"
+weight_plot_path = "reports/generated/iptw_weight_distribution.png"
+balance_plot_path = "reports/generated/iptw_balance_love_plot.png"
+simulation_validation_path = "reports/generated/observational_simulation_validation.json"
+[observational.generation]
+propensity_min = 0.05
+propensity_max = 0.95
+[portfolio]
+report_path = "reports/generated/portfolio_report.md"
+examples_dir = "examples"
+config_label = "ci"
