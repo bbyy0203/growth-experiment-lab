@@ -10,15 +10,26 @@ from growth_experiment_lab.aa_simulation import AASimulationError
 from growth_experiment_lab.ab_analysis import ABAnalysisError, analyze_ab
 from growth_experiment_lab.ab_effects import EffectEstimationError
 from growth_experiment_lab.bootstrap import BootstrapError
+from growth_experiment_lab.causal_bootstrap import CausalBootstrapError
 from growth_experiment_lab.config import DEFAULT_CONFIG_PATH, ConfigError, load_config
 from growth_experiment_lab.cuped import CupedError
 from growth_experiment_lab.data_validation import DataValidationError
 from growth_experiment_lab.experiment_design import ExperimentDesignError
+from growth_experiment_lab.iptw import IPTWError
 from growth_experiment_lab.mart import (
     MartBuildError,
     build_all_marts,
     validate_data_and_write_report,
 )
+from growth_experiment_lab.observational_analysis import (
+    ObservationalAnalysisError,
+    analyze_observational,
+)
+from growth_experiment_lab.observational_validation import (
+    ObservationalValidationError,
+    validate_observational_simulation,
+)
+from growth_experiment_lab.propensity import PropensityError
 from growth_experiment_lab.randomization_diagnostics import RandomizationDiagnosticError
 from growth_experiment_lab.simulation_validation import (
     SimulationValidationError,
@@ -145,6 +156,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="path to the TOML configuration (default: %(default)s)",
     )
     validation_parser.add_argument("--overwrite", action="store_true")
+    observational_parser = subparsers.add_parser(
+        "analyze-observational", help="run observational stabilized-IPTW analysis"
+    )
+    observational_parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    observational_parser.add_argument("--overwrite", action="store_true")
+    observational_parser.add_argument("--skip-bootstrap", action="store_true")
+    observational_validation_parser = subparsers.add_parser(
+        "validate-observational-simulation",
+        help="compare observational estimates with synthetic truth",
+    )
+    observational_validation_parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    observational_validation_parser.add_argument("--overwrite", action="store_true")
     return parser
 
 
@@ -163,7 +186,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             parser.error(str(error))
         print(f"Configuration is valid: {args.config}")
         return 0
-
 
     if args.command == "generate-data":
         try:
@@ -245,9 +267,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "diagnose-randomization":
         try:
             config = load_config(args.config)
-            report = diagnose_randomization(
-                config, overwrite=args.overwrite, skip_aa=args.skip_aa
-            )
+            report = diagnose_randomization(config, overwrite=args.overwrite, skip_aa=args.skip_aa)
         except (
             AASimulationError,
             ConfigError,
@@ -321,6 +341,39 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Synthetic validation only: {report['synthetic_validation_only']}")
         print(f"Metrics compared: {len(report['comparisons'])}")
         print(f"JSON report: {config['ab_analysis']['simulation_validation_path']}")
+        return 0
+
+    if args.command == "analyze-observational":
+        try:
+            config = load_config(args.config)
+            report = analyze_observational(
+                config, overwrite=args.overwrite, skip_bootstrap=args.skip_bootstrap
+            )
+        except (
+            CausalBootstrapError,
+            ConfigError,
+            DataValidationError,
+            IPTWError,
+            ObservationalAnalysisError,
+            PropensityError,
+        ) as error:
+            parser.error(str(error))
+        print(f"Maximum |SMD| after IPTW: {report['balance']['iptw']['maximum_absolute_smd']:.6f}")
+        print(f"Overall ESS: {report['weights']['effective_sample_size']['overall']:.1f}")
+        print(f"Requires human review: {report['requires_human_review']}")
+        print(f"JSON report: {config['observational']['results_path']}")
+        print(f"Markdown report: {config['observational']['markdown_path']}")
+        return 0
+
+    if args.command == "validate-observational-simulation":
+        try:
+            config = load_config(args.config)
+            report = validate_observational_simulation(config, overwrite=args.overwrite)
+        except (ConfigError, ObservationalValidationError) as error:
+            parser.error(str(error))
+        print(f"Synthetic validation only: {report['synthetic_validation_only']}")
+        print(f"Metrics compared: {len(report['comparisons'])}")
+        print(f"JSON report: {config['observational']['simulation_validation_path']}")
         return 0
 
     parser.error(f"Unknown command: {args.command}")

@@ -114,6 +114,27 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigError("observational.estimand must be 'ATE'")
     if observational.get("weighting") != "stabilized_iptw":
         raise ConfigError("observational.weighting must be 'stabilized_iptw'")
+    if observational.get("propensity_model") != "logistic_regression":
+        raise ConfigError("observational.propensity_model must be 'logistic_regression'")
+    if observational.get("main_analysis_truncate_weights") is not False:
+        raise ConfigError("observational.main_analysis_truncate_weights must be false")
+    for key in ("causal_bootstrap_seed", "causal_bootstrap_resamples"):
+        if not isinstance(observational.get(key), int) or observational[key] <= 0:
+            raise ConfigError(f"observational.{key} must be a positive integer")
+    if observational.get("sensitivity_lower_quantile") != 0.01:
+        raise ConfigError("observational sensitivity lower quantile must be 0.01")
+    if observational.get("sensitivity_upper_quantile") != 0.99:
+        raise ConfigError("observational sensitivity upper quantile must be 0.99")
+    for key in (
+        "results_path",
+        "markdown_path",
+        "overlap_plot_path",
+        "weight_plot_path",
+        "balance_plot_path",
+        "simulation_validation_path",
+    ):
+        if not isinstance(observational.get(key), str):
+            raise ConfigError(f"observational.{key} must be a string")
 
     if not isinstance(data_generation.get("version"), str):
         raise ConfigError("data_generation.version must be a string")

@@ -105,3 +105,9 @@ decision support。项目不自动决定上线，所有结论要求人工复核�
 不使用真实数据；不实现 HTML、Jinja2、Streamlit、GitHub Actions；不做自动分群、
 序贯检验、贝叶斯实验、复杂实验设计、双重稳健估计或未观测混杂修正。Notebook 仅用于
 探索，不作为正式流水线入口。
+
+## 7. 阶段 5：观察性 stabilized IPTW
+
+正式流程只能读取 observational mart，并使用固定的处理前变量白名单。输出 overlap、
+positivity、权重、ESS、平衡诊断，naive、未截断 Hájek IPTW 与预先声明的截断敏感性
+估计，以及每次重拟合倾向模型的用户级 Bootstrap 区间。合成真值仅由隔离命令验证。

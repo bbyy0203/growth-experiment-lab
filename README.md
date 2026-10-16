@@ -82,3 +82,14 @@ python -m ruff check .
 ## 许可证
 
 MIT License，详见 [LICENSE](LICENSE)。
+
+## 观察性因果分析
+
+```bash
+python -m growth_experiment_lab analyze-observational --config configs/default.toml
+python -m growth_experiment_lab validate-observational-simulation --config configs/default.toml
+```
+
+该流程仅分析合成的观察性数据，报告 naive difference、stabilized IPTW ATE、overlap、
+权重稳定性、ESS、加权前后 SMD、预先声明的 1%/99% 权重截断敏感性分析，以及每次
+重新拟合倾向模型的用户级 Bootstrap 区间。结果不代表真实业务效果，且必须人工复核。

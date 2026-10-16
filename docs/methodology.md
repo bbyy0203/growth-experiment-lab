@@ -64,8 +64,9 @@ CUPED 使用全部随机用户统一估计 `cov(Y, X) / var(X)`，其中 X 只�
 ## 观察性因果分析
 
 第一版目标是 ATE，主要方法为 stabilized IPTW。倾向模型仅可使用处理前变量。
-后续将记录 overlap、positivity、平衡、极端权重、有效样本量和 Bootstrap 方案。
-当前阶段只生成供未来方法使用的数据，不执行 IPTW 估计。
+当前实现记录 overlap、positivity、平衡、极端权重与有效样本量。固定倾向模型只使用
+处理前变量；主要估计为未截断 stabilized Hájek IPTW，1%/99% 截断仅作为预先声明的
+敏感性分析。用户级 Bootstrap 每次都重新完成预处理和倾向模型拟合。
 
 ## 可复现性
 

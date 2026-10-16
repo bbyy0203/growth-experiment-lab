@@ -90,6 +90,16 @@ main_analysis_truncate_weights = false
 sensitivity_lower_quantile = 0.01
 sensitivity_upper_quantile = 0.99
 refit_propensity_in_each_bootstrap = true
+causal_bootstrap_seed = 20261018
+causal_bootstrap_resamples = 200
+positivity_threshold = 0.05
+extreme_share_warning_threshold = 0.01
+results_path = "reports/generated/observational_results.json"
+markdown_path = "reports/generated/observational_analysis.md"
+overlap_plot_path = "reports/generated/propensity_overlap.png"
+weight_plot_path = "reports/generated/iptw_weight_distribution.png"
+balance_plot_path = "reports/generated/iptw_balance_love_plot.png"
+simulation_validation_path = "reports/generated/observational_simulation_validation.json"
 
 [observational.generation]
 propensity_min = 0.05
