@@ -9,8 +9,8 @@ A/B 实验设计、质量检查、效果评估与基于 IPTW 的观察性因果�
 
 ## 当前状态
 
-目前完成至阶段 2A：工程骨架、统计契约和可复现的合成数据生成。当前版本尚未实现
-DuckDB 分析底表、A/B 显著性检验、CUPED 或 IPTW 估计。
+目前完成至阶段 2B：工程骨架、统计契约、可复现的合成数据生成、DuckDB SQL 用户级
+分析底表和严格数据质量检查。当前版本尚未实现 A/B 显著性检验、CUPED 或 IPTW 估计。
 
 ## 环境
 
@@ -32,15 +32,22 @@ python -m pip install -e ".[dev]"
 python -m growth_experiment_lab --help
 python -m growth_experiment_lab validate-config --config configs/default.toml
 python -m growth_experiment_lab generate-data --config configs/default.toml
+python -m growth_experiment_lab build-mart --config configs/default.toml
+python -m growth_experiment_lab validate-data --config configs/default.toml
 ```
 
 数据文件默认写入 `data/raw/`，真实处理效应元数据写入
 `data/metadata/true_effects.json`。如文件已存在，命令会拒绝覆盖；只有显式添加
 `--overwrite` 才会替换。完整生成数据默认不纳入版本控制。
 
+`build-mart` 同时构建随机实验和观察性用户级底表，默认拒绝覆盖，可显式添加
+`--overwrite`。`validate-data` 验证原始表与底表，并将机器可读摘要写入
+`reports/generated/data_quality_summary.json`。
+
 生成器同时创建随机实验数据和带可观测混杂的观察性数据。其结构与生成方法见
 [`docs/synthetic_data.md`](docs/synthetic_data.md)，字段定义见
 [`docs/data_dictionary.md`](docs/data_dictionary.md)。
+数据质量与泄漏边界见 [`docs/data_quality.md`](docs/data_quality.md)。
 
 ## 验证
 

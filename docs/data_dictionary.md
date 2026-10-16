@@ -37,3 +37,17 @@
 
 `assignment_probability` 是合成数据生成机制的一部分，不代表真实研究中可以观察到真实
 倾向得分。正式倾向模型只能使用 `users` 中预先声明的处理前变量，不能使用 outcomes。
+
+## experiment_mart
+
+正式用户级分析底表一名用户一行，字段白名单为：
+
+- 标识与分配：`user_id`、`assignment_date`、`dataset_type`、`treatment`。
+- 处理前协变量：`device_type`、`region`、`is_new_user`、`pre_7d_sessions`、
+  `pre_7d_watch_time_minutes`、`pre_7d_click_days`、`pre_experiment_activity_score`。
+- 观测结果：`clicked`、`watch_time_minutes`、`next_day_retention`、
+  `negative_feedback`。
+
+正式处理前协变量白名单仅为上述七个处理前字段。结果字段不能作为处理前协变量。
+`assignment_probability`、`p0`、`p1`、真实效果、潜在结果、内部潜变量以及
+`true_effects.json` 中的值明确禁止进入底表。

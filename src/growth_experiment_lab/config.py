@@ -33,6 +33,8 @@ def validate_config(config: dict[str, Any]) -> None:
     required_sections = {
         "project",
         "data_generation",
+        "mart",
+        "data_quality",
         "experiment",
         "inference",
         "metrics",
@@ -53,6 +55,8 @@ def validate_config(config: dict[str, Any]) -> None:
     metrics = config["metrics"]
     observational = config["observational"]
     data_generation = config["data_generation"]
+    mart = config["mart"]
+    data_quality = config["data_quality"]
 
     if not isinstance(project.get("random_seed"), int):
         raise ConfigError("project.random_seed must be an integer")
@@ -107,6 +111,10 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigError("data_generation.version must be a string")
     if not isinstance(data_generation.get("output_dir"), str):
         raise ConfigError("data_generation.output_dir must be a string")
+    if not isinstance(mart.get("sql_dir"), str):
+        raise ConfigError("mart.sql_dir must be a string")
+    if not isinstance(data_quality.get("report_path"), str):
+        raise ConfigError("data_quality.report_path must be a string")
     generation = observational.get("generation")
     if not isinstance(generation, dict):
         raise ConfigError("observational.generation must be a table")

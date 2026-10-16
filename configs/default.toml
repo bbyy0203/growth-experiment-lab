@@ -6,6 +6,12 @@ version = "1.0"
 output_dir = "data"
 assignment_start_date = "2026-01-01"
 
+[mart]
+sql_dir = "sql"
+
+[data_quality]
+report_path = "reports/generated/data_quality_summary.json"
+
 [experiment]
 n_users = 100000
 treatment_share = 0.5

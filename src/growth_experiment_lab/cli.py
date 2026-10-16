@@ -7,6 +7,12 @@ from collections.abc import Sequence
 
 from growth_experiment_lab import __version__
 from growth_experiment_lab.config import DEFAULT_CONFIG_PATH, ConfigError, load_config
+from growth_experiment_lab.data_validation import DataValidationError
+from growth_experiment_lab.mart import (
+    MartBuildError,
+    build_all_marts,
+    validate_data_and_write_report,
+)
 from growth_experiment_lab.synthetic_data import DataGenerationError, generate_and_write
 
 
@@ -43,6 +49,31 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="replace existing generated files",
     )
+
+    build_parser = subparsers.add_parser(
+        "build-mart",
+        help="build validated randomized and observational user-level marts",
+    )
+    build_parser.add_argument(
+        "--config",
+        default=str(DEFAULT_CONFIG_PATH),
+        help="path to the TOML configuration (default: %(default)s)",
+    )
+    build_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="replace existing processed mart files",
+    )
+
+    validate_data_parser = subparsers.add_parser(
+        "validate-data",
+        help="validate raw tables and processed marts and write a JSON summary",
+    )
+    validate_data_parser.add_argument(
+        "--config",
+        default=str(DEFAULT_CONFIG_PATH),
+        help="path to the TOML configuration (default: %(default)s)",
+    )
     return parser
 
 
@@ -76,6 +107,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         for dataset_type, dataset in result.datasets.items():
             treatment_share = dataset.assignment["treatment"].mean()
             print(f"Dataset: {dataset_type}; actual treatment share: {treatment_share:.6f}")
+        return 0
+
+    if args.command == "build-mart":
+        try:
+            config = load_config(args.config)
+            results = build_all_marts(config, overwrite=args.overwrite)
+        except (ConfigError, DataValidationError, MartBuildError) as error:
+            parser.error(str(error))
+        for result in results:
+            print(f"Dataset: {result.dataset_type}")
+            for table_name, input_path in result.input_paths.items():
+                print(f"Input {table_name}: {input_path}")
+            print(f"Output: {result.output_path}")
+            print(f"Rows: {len(result.mart)}; columns: {len(result.mart.columns)}")
+        return 0
+
+    if args.command == "validate-data":
+        try:
+            config = load_config(args.config)
+            report = validate_data_and_write_report(config)
+        except (ConfigError, DataValidationError, MartBuildError) as error:
+            parser.error(str(error))
+        for dataset_type, summary in report["datasets"].items():
+            print(
+                f"Dataset: {dataset_type}; users: {summary['total_users']}; "
+                f"treatment share: {summary['treatment_share']:.6f}; checks: passed"
+            )
+        print(f"JSON report: {config['data_quality']['report_path']}")
         return 0
 
     parser.error(f"Unknown command: {args.command}")
