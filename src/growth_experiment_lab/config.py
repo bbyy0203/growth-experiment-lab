@@ -39,6 +39,7 @@ def validate_config(config: dict[str, Any]) -> None:
         "inference",
         "experiment_design",
         "randomization_diagnostics",
+        "ab_analysis",
         "metrics",
         "aa_simulation",
         "observational",
@@ -56,6 +57,7 @@ def validate_config(config: dict[str, Any]) -> None:
     inference = config["inference"]
     experiment_design = config["experiment_design"]
     diagnostics = config["randomization_diagnostics"]
+    ab_analysis = config["ab_analysis"]
     metrics = config["metrics"]
     observational = config["observational"]
     data_generation = config["data_generation"]
@@ -161,3 +163,19 @@ def validate_config(config: dict[str, Any]) -> None:
     aa_alpha = aa_simulation.get("alpha")
     if not isinstance(aa_alpha, (int, float)) or not 0 < aa_alpha < 1:
         raise ConfigError("aa_simulation.alpha must be between 0 and 1")
+
+    if not isinstance(ab_analysis.get("bootstrap_seed"), int):
+        raise ConfigError("ab_analysis.bootstrap_seed must be an integer")
+    bootstrap_resamples = ab_analysis.get("bootstrap_resamples")
+    if not isinstance(bootstrap_resamples, int) or bootstrap_resamples <= 0:
+        raise ConfigError("ab_analysis.bootstrap_resamples must be a positive integer")
+    for path_key in (
+        "results_path",
+        "markdown_path",
+        "effect_plot_path",
+        "cuped_plot_path",
+        "subgroup_plot_path",
+        "simulation_validation_path",
+    ):
+        if not isinstance(ab_analysis.get(path_key), str):
+            raise ConfigError(f"ab_analysis.{path_key} must be a string")

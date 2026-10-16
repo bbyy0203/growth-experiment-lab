@@ -7,7 +7,11 @@ from collections.abc import Sequence
 
 from growth_experiment_lab import __version__
 from growth_experiment_lab.aa_simulation import AASimulationError
+from growth_experiment_lab.ab_analysis import ABAnalysisError, analyze_ab
+from growth_experiment_lab.ab_effects import EffectEstimationError
+from growth_experiment_lab.bootstrap import BootstrapError
 from growth_experiment_lab.config import DEFAULT_CONFIG_PATH, ConfigError, load_config
+from growth_experiment_lab.cuped import CupedError
 from growth_experiment_lab.data_validation import DataValidationError
 from growth_experiment_lab.experiment_design import ExperimentDesignError
 from growth_experiment_lab.mart import (
@@ -16,11 +20,16 @@ from growth_experiment_lab.mart import (
     validate_data_and_write_report,
 )
 from growth_experiment_lab.randomization_diagnostics import RandomizationDiagnosticError
+from growth_experiment_lab.simulation_validation import (
+    SimulationValidationError,
+    validate_simulation_estimates,
+)
 from growth_experiment_lab.stage3 import (
     Stage3OutputError,
     diagnose_randomization,
     plan_experiment,
 )
+from growth_experiment_lab.subgroup_analysis import SubgroupAnalysisError
 from growth_experiment_lab.synthetic_data import DataGenerationError, generate_and_write
 
 
@@ -111,6 +120,31 @@ def build_parser() -> argparse.ArgumentParser:
     diagnostic_parser.add_argument(
         "--skip-aa", action="store_true", help="skip the independent A/A simulation"
     )
+
+    analyze_parser = subparsers.add_parser(
+        "analyze-ab",
+        help="run the predeclared randomized-experiment ITT analysis",
+    )
+    analyze_parser.add_argument(
+        "--config",
+        default=str(DEFAULT_CONFIG_PATH),
+        help="path to the TOML configuration (default: %(default)s)",
+    )
+    analyze_parser.add_argument("--overwrite", action="store_true")
+    analyze_parser.add_argument("--skip-bootstrap", action="store_true")
+    analyze_parser.add_argument("--skip-cuped", action="store_true")
+    analyze_parser.add_argument("--skip-segments", action="store_true")
+
+    validation_parser = subparsers.add_parser(
+        "validate-simulation-estimates",
+        help="separately compare formal estimates with synthetic sample truth",
+    )
+    validation_parser.add_argument(
+        "--config",
+        default=str(DEFAULT_CONFIG_PATH),
+        help="path to the TOML configuration (default: %(default)s)",
+    )
+    validation_parser.add_argument("--overwrite", action="store_true")
     return parser
 
 
@@ -243,6 +277,51 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Warnings: {report['warnings']}")
         print(f"JSON report: {config['randomization_diagnostics']['report_path']}")
         return 1 if report["critical_failures"] else 0
+
+    if args.command == "analyze-ab":
+        try:
+            config = load_config(args.config)
+            report = analyze_ab(
+                config,
+                overwrite=args.overwrite,
+                skip_bootstrap=args.skip_bootstrap,
+                skip_cuped=args.skip_cuped,
+                skip_segments=args.skip_segments,
+            )
+        except (
+            ABAnalysisError,
+            BootstrapError,
+            ConfigError,
+            CupedError,
+            DataValidationError,
+            EffectEstimationError,
+            RandomizationDiagnosticError,
+            SubgroupAnalysisError,
+        ) as error:
+            parser.error(str(error))
+        primary = report["metrics"]["next_day_retention"]
+        guardrail = report["metrics"]["negative_feedback"]
+        print(
+            f"Primary absolute effect: {primary['absolute_effect']:.6f}; "
+            f"95% CI: [{primary['confidence_interval_lower']:.6f}, "
+            f"{primary['confidence_interval_upper']:.6f}]; p-value: {primary['raw_p_value']:.6g}"
+        )
+        print(f"Guardrail status: {guardrail['guardrail_status']}")
+        print(f"Requires human review: {report['requires_human_review']}")
+        print(f"JSON report: {config['ab_analysis']['results_path']}")
+        print(f"Markdown report: {config['ab_analysis']['markdown_path']}")
+        return 0
+
+    if args.command == "validate-simulation-estimates":
+        try:
+            config = load_config(args.config)
+            report = validate_simulation_estimates(config, overwrite=args.overwrite)
+        except (ConfigError, SimulationValidationError) as error:
+            parser.error(str(error))
+        print(f"Synthetic validation only: {report['synthetic_validation_only']}")
+        print(f"Metrics compared: {len(report['comparisons'])}")
+        print(f"JSON report: {config['ab_analysis']['simulation_validation_path']}")
+        return 0
 
     parser.error(f"Unknown command: {args.command}")
     return 2

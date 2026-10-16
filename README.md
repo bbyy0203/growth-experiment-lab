@@ -9,8 +9,8 @@ A/B 实验设计、质量检查、效果评估与基于 IPTW 的观察性因果�
 
 ## 当前状态
 
-目前完成至阶段 3：工程骨架、合成数据、DuckDB 用户级底表、数据质量检查、实验设计与
-随机化质量诊断。当前版本尚未实现正式 A/B 效果评估、Bootstrap、CUPED 或 IPTW。
+目前完成至阶段 4：工程骨架、合成数据、DuckDB 用户级底表、数据质量检查、实验设计、
+随机化诊断和随机 A/B 效果评估。观察性 propensity score 与 IPTW 尚未实现。
 
 ## 环境
 
@@ -36,6 +36,8 @@ python -m growth_experiment_lab build-mart --config configs/default.toml
 python -m growth_experiment_lab validate-data --config configs/default.toml
 python -m growth_experiment_lab plan-experiment --config configs/default.toml
 python -m growth_experiment_lab diagnose-randomization --config configs/default.toml
+python -m growth_experiment_lab analyze-ab --config configs/default.toml
+python -m growth_experiment_lab validate-simulation-estimates --config configs/default.toml
 ```
 
 数据文件默认写入 `data/raw/`，真实处理效应元数据写入
@@ -52,6 +54,11 @@ python -m growth_experiment_lab diagnose-randomization --config configs/default.
 数据质量与泄漏边界见 [`docs/data_quality.md`](docs/data_quality.md)。
 实验设计与诊断方法分别见 [`docs/experiment_design.md`](docs/experiment_design.md) 和
 [`docs/randomization_diagnostics.md`](docs/randomization_diagnostics.md)。
+正式 ITT 估计方法见 [`docs/ab_effect_estimation.md`](docs/ab_effect_estimation.md)。
+
+`analyze-ab` 只读取 randomized mart，不读取合成真值。独立的
+`validate-simulation-estimates` 仅在正式结果生成后读取真值，用于验证合成数据估计误差，
+其输出不得进入业务决策支持。
 
 ## 验证
 

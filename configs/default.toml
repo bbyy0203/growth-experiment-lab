@@ -38,6 +38,16 @@ report_path = "reports/generated/randomization_diagnostics.json"
 balance_plot_path = "reports/generated/randomization_balance.png"
 aa_plot_path = "reports/generated/aa_pvalue_histogram.png"
 
+[ab_analysis]
+bootstrap_seed = 20261017
+bootstrap_resamples = 1000
+results_path = "reports/generated/ab_results.json"
+markdown_path = "reports/generated/ab_analysis.md"
+effect_plot_path = "reports/generated/ab_effect_forest.png"
+cuped_plot_path = "reports/generated/cuped_comparison.png"
+subgroup_plot_path = "reports/generated/subgroup_effects.png"
+simulation_validation_path = "reports/generated/simulation_estimate_validation.json"
+
 [metrics.next_day_retention]
 role = "primary"
 kind = "binary"

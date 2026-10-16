@@ -85,6 +85,8 @@ def test_invalid_guardrail_threshold_is_rejected(
         (("aa_simulation",), "n_simulations", 0, "n_simulations"),
         (("aa_simulation",), "n_users_per_simulation", -1, "n_users_per_simulation"),
         (("aa_simulation",), "alpha", 1.0, "aa_simulation.alpha"),
+        (("ab_analysis",), "bootstrap_seed", "seed", "bootstrap_seed"),
+        (("ab_analysis",), "bootstrap_resamples", 0, "bootstrap_resamples"),
     ],
 )
 def test_invalid_stage3_configuration_is_rejected(

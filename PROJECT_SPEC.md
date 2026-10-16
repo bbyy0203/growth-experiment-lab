@@ -39,7 +39,7 @@
 1. 工程骨架与统计契约（已完成）。
 2. 合成数据生成（2A，已完成）；DuckDB SQL 底表和数据质量检查（2B，已完成）。
 3. 实验设计、SRM、平衡诊断和 A/A 模拟（已完成）。
-4. 随机 A/B 效果评估、Holm 校正、Bootstrap、CUPED 和预定义分群。
+4. 随机 A/B 效果评估、Holm 校正、Bootstrap、CUPED 和预定义分群（已完成）。
 5. 观察性数据的 stabilized IPTW 估计与诊断。
 6. 端到端 Markdown 报告和整体质量验收。
 
@@ -71,6 +71,18 @@ DuckDB 使用两份显式字段 SQL 分别构建随机实验与观察性底表�
 
 本阶段不读取 `true_effects.json`、原始真实分配概率或潜在结果，不计算当前实验处理效果。
 SRM 失败属于结构性失败；SMD 超阈值和 A/A 超出有限模拟区间只产生警告。
+
+## 3.4 阶段 4 随机实验效果估计契约
+
+正式分析按首次分组执行用户级 ITT，所有随机入组用户均保留。主指标单独检验；clicked 与
+watch time 属于预声明 Holm 校正族；negative feedback 独立按 +0.005 护栏阈值判断。
+
+二元指标使用双侧比例检验与 Newcombe-Wilson 风险差区间；观看时长使用 Welch 推断和
+用户级 Bootstrap。CUPED 只使用实验前 7 日观看时长，统一估计 theta。唯一预定义分群是
+`is_new_user`，异质性必须使用 HC3 treatment 交互检验。
+
+正式估计路径只读取 randomized mart，不读取生成真值。真值比较由独立命令完成，且不进入
+decision support。项目不自动决定上线，所有结论要求人工复核。
 
 ## 4. A/A 契约
 
