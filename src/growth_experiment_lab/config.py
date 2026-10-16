@@ -37,6 +37,8 @@ def validate_config(config: dict[str, Any]) -> None:
         "data_quality",
         "experiment",
         "inference",
+        "experiment_design",
+        "randomization_diagnostics",
         "metrics",
         "aa_simulation",
         "observational",
@@ -52,6 +54,8 @@ def validate_config(config: dict[str, Any]) -> None:
     project = config["project"]
     experiment = config["experiment"]
     inference = config["inference"]
+    experiment_design = config["experiment_design"]
+    diagnostics = config["randomization_diagnostics"]
     metrics = config["metrics"]
     observational = config["observational"]
     data_generation = config["data_generation"]
@@ -74,6 +78,8 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigError("inference.alpha must be between 0 and 1")
     if not 0 < inference.get("power", 0) < 1:
         raise ConfigError("inference.power must be between 0 and 1")
+    if inference.get("alternative") != "two-sided":
+        raise ConfigError("inference.alternative must be 'two-sided'")
 
     expected_roles = {
         "next_day_retention": "primary",
@@ -126,3 +132,32 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ConfigError("observational.generation.propensity_max must be between 0 and 1")
     if propensity_min >= propensity_max:
         raise ConfigError("propensity_min must be smaller than propensity_max")
+
+    if experiment_design.get("primary_metric") != "next_day_retention":
+        raise ConfigError("experiment_design.primary_metric must be 'next_day_retention'")
+    primary_mde = experiment_design.get("primary_absolute_mde")
+    if not isinstance(primary_mde, (int, float)) or primary_mde <= 0:
+        raise ConfigError("experiment_design.primary_absolute_mde must be positive")
+    if not isinstance(experiment_design.get("report_path"), str):
+        raise ConfigError("experiment_design.report_path must be a string")
+
+    srm_alpha = diagnostics.get("srm_alpha")
+    if not isinstance(srm_alpha, (int, float)) or not 0 < srm_alpha < 1:
+        raise ConfigError("randomization_diagnostics.srm_alpha must be between 0 and 1")
+    smd_threshold = diagnostics.get("smd_warning_threshold")
+    if not isinstance(smd_threshold, (int, float)) or smd_threshold <= 0:
+        raise ConfigError("randomization_diagnostics.smd_warning_threshold must be positive")
+    for path_key in ("report_path", "balance_plot_path", "aa_plot_path"):
+        if not isinstance(diagnostics.get(path_key), str):
+            raise ConfigError(f"randomization_diagnostics.{path_key} must be a string")
+
+    aa_simulation = config["aa_simulation"]
+    if not isinstance(aa_simulation.get("random_seed"), int):
+        raise ConfigError("aa_simulation.random_seed must be an integer")
+    for count_key in ("n_simulations", "n_users_per_simulation"):
+        value = aa_simulation.get(count_key)
+        if not isinstance(value, int) or value <= 0:
+            raise ConfigError(f"aa_simulation.{count_key} must be a positive integer")
+    aa_alpha = aa_simulation.get("alpha")
+    if not isinstance(aa_alpha, (int, float)) or not 0 < aa_alpha < 1:
+        raise ConfigError("aa_simulation.alpha must be between 0 and 1")

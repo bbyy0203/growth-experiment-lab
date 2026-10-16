@@ -72,3 +72,33 @@ def test_invalid_guardrail_threshold_is_rejected(
 
     with pytest.raises(ConfigError, match="maximum allowed increase"):
         validate_config(config)
+
+
+@pytest.mark.parametrize(
+    ("section_path", "key", "value", "message"),
+    [
+        (("inference",), "alternative", "larger", "alternative"),
+        (("experiment_design",), "primary_absolute_mde", 0.0, "primary_absolute_mde"),
+        (("randomization_diagnostics",), "srm_alpha", 0.0, "srm_alpha"),
+        (("randomization_diagnostics",), "smd_warning_threshold", -0.1, "smd_warning"),
+        (("aa_simulation",), "random_seed", "20261016", "random_seed"),
+        (("aa_simulation",), "n_simulations", 0, "n_simulations"),
+        (("aa_simulation",), "n_users_per_simulation", -1, "n_users_per_simulation"),
+        (("aa_simulation",), "alpha", 1.0, "aa_simulation.alpha"),
+    ],
+)
+def test_invalid_stage3_configuration_is_rejected(
+    valid_config: dict[str, object],
+    section_path: tuple[str, ...],
+    key: str,
+    value: object,
+    message: str,
+) -> None:
+    config = deepcopy(valid_config)
+    section = config
+    for part in section_path:
+        section = section[part]  # type: ignore[assignment,index]
+    section[key] = value  # type: ignore[index]
+
+    with pytest.raises(ConfigError, match=message):
+        validate_config(config)

@@ -24,6 +24,19 @@ segment = "is_new_user"
 alpha = 0.05
 power = 0.80
 confidence_level = 0.95
+alternative = "two-sided"
+
+[experiment_design]
+primary_metric = "next_day_retention"
+primary_absolute_mde = 0.01
+report_path = "reports/generated/experiment_design.json"
+
+[randomization_diagnostics]
+srm_alpha = 0.001
+smd_warning_threshold = 0.10
+report_path = "reports/generated/randomization_diagnostics.json"
+balance_plot_path = "reports/generated/randomization_balance.png"
+aa_plot_path = "reports/generated/aa_pvalue_histogram.png"
 
 [metrics.next_day_retention]
 role = "primary"
@@ -56,6 +69,8 @@ maximum_allowed_increase = 0.005
 [aa_simulation]
 n_simulations = 500
 n_users_per_simulation = 20000
+random_seed = 20261016
+alpha = 0.05
 
 [observational]
 estimand = "ATE"

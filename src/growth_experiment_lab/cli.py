@@ -6,12 +6,20 @@ import argparse
 from collections.abc import Sequence
 
 from growth_experiment_lab import __version__
+from growth_experiment_lab.aa_simulation import AASimulationError
 from growth_experiment_lab.config import DEFAULT_CONFIG_PATH, ConfigError, load_config
 from growth_experiment_lab.data_validation import DataValidationError
+from growth_experiment_lab.experiment_design import ExperimentDesignError
 from growth_experiment_lab.mart import (
     MartBuildError,
     build_all_marts,
     validate_data_and_write_report,
+)
+from growth_experiment_lab.randomization_diagnostics import RandomizationDiagnosticError
+from growth_experiment_lab.stage3 import (
+    Stage3OutputError,
+    diagnose_randomization,
+    plan_experiment,
 )
 from growth_experiment_lab.synthetic_data import DataGenerationError, generate_and_write
 
@@ -73,6 +81,35 @@ def build_parser() -> argparse.ArgumentParser:
         "--config",
         default=str(DEFAULT_CONFIG_PATH),
         help="path to the TOML configuration (default: %(default)s)",
+    )
+
+    plan_parser = subparsers.add_parser(
+        "plan-experiment",
+        help="plan the binary primary metric and calculate the current detectable effect",
+    )
+    plan_parser.add_argument(
+        "--config",
+        default=str(DEFAULT_CONFIG_PATH),
+        help="path to the TOML configuration (default: %(default)s)",
+    )
+    plan_parser.add_argument(
+        "--overwrite", action="store_true", help="replace existing JSON output"
+    )
+
+    diagnostic_parser = subparsers.add_parser(
+        "diagnose-randomization",
+        help="run SRM, pre-treatment balance, and independent A/A diagnostics",
+    )
+    diagnostic_parser.add_argument(
+        "--config",
+        default=str(DEFAULT_CONFIG_PATH),
+        help="path to the TOML configuration (default: %(default)s)",
+    )
+    diagnostic_parser.add_argument(
+        "--overwrite", action="store_true", help="replace existing diagnostic outputs"
+    )
+    diagnostic_parser.add_argument(
+        "--skip-aa", action="store_true", help="skip the independent A/A simulation"
     )
     return parser
 
@@ -136,6 +173,76 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         print(f"JSON report: {config['data_quality']['report_path']}")
         return 0
+
+    if args.command == "plan-experiment":
+        try:
+            config = load_config(args.config)
+            report = plan_experiment(config, overwrite=args.overwrite)
+        except (
+            ConfigError,
+            DataValidationError,
+            ExperimentDesignError,
+            Stage3OutputError,
+        ) as error:
+            parser.error(str(error))
+        planned = report["planned_design"]
+        current = report["current_randomized_mart"]
+        print(f"Primary metric: {report['primary_metric']}")
+        print(
+            f"Baseline: {planned['baseline_probability']:.6f}; target absolute MDE: "
+            f"{planned['absolute_effect']:.6f}; relative lift: {planned['relative_lift']:.6f}"
+        )
+        print(
+            f"Alpha: {planned['alpha']}; power: {planned['power']}; "
+            f"treatment share: {planned['treatment_share']}"
+        )
+        print(
+            f"Required control/treatment/total: {planned['control_n']}/"
+            f"{planned['treatment_n']}/{planned['total_n']}"
+        )
+        print(
+            f"Current control/treatment: {current['control_n']}/{current['treatment_n']}; "
+            f"detectable absolute MDE: {current['detectable_absolute_effect']:.6f}; "
+            f"relative lift: {current['detectable_relative_lift']:.6f}"
+        )
+        print(f"JSON report: {config['experiment_design']['report_path']}")
+        return 0
+
+    if args.command == "diagnose-randomization":
+        try:
+            config = load_config(args.config)
+            report = diagnose_randomization(
+                config, overwrite=args.overwrite, skip_aa=args.skip_aa
+            )
+        except (
+            AASimulationError,
+            ConfigError,
+            DataValidationError,
+            RandomizationDiagnosticError,
+            Stage3OutputError,
+        ) as error:
+            parser.error(str(error))
+        srm = report["srm"]
+        balance = report["pre_treatment_balance"]
+        print(
+            f"SRM passed: {srm['passed']}; p-value: {srm['p_value']:.6g}; "
+            f"observed treatment share: {srm['observed_treatment_share']:.6f}"
+        )
+        print(
+            f"Maximum absolute SMD: {balance['maximum_absolute_smd']:.6f}; "
+            f"warning variables: {balance['warning_variables']}"
+        )
+        if report["aa_simulation"].get("skipped"):
+            print("A/A simulation: skipped")
+        else:
+            aa = report["aa_simulation"]
+            print(
+                f"A/A false positives: {aa['false_positive_count']}/{aa['simulations']}; "
+                f"rate: {aa['empirical_false_positive_rate']:.6f}"
+            )
+        print(f"Warnings: {report['warnings']}")
+        print(f"JSON report: {config['randomization_diagnostics']['report_path']}")
+        return 1 if report["critical_failures"] else 0
 
     parser.error(f"Unknown command: {args.command}")
     return 2

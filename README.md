@@ -9,8 +9,8 @@ A/B 实验设计、质量检查、效果评估与基于 IPTW 的观察性因果�
 
 ## 当前状态
 
-目前完成至阶段 2B：工程骨架、统计契约、可复现的合成数据生成、DuckDB SQL 用户级
-分析底表和严格数据质量检查。当前版本尚未实现 A/B 显著性检验、CUPED 或 IPTW 估计。
+目前完成至阶段 3：工程骨架、合成数据、DuckDB 用户级底表、数据质量检查、实验设计与
+随机化质量诊断。当前版本尚未实现正式 A/B 效果评估、Bootstrap、CUPED 或 IPTW。
 
 ## 环境
 
@@ -34,6 +34,8 @@ python -m growth_experiment_lab validate-config --config configs/default.toml
 python -m growth_experiment_lab generate-data --config configs/default.toml
 python -m growth_experiment_lab build-mart --config configs/default.toml
 python -m growth_experiment_lab validate-data --config configs/default.toml
+python -m growth_experiment_lab plan-experiment --config configs/default.toml
+python -m growth_experiment_lab diagnose-randomization --config configs/default.toml
 ```
 
 数据文件默认写入 `data/raw/`，真实处理效应元数据写入
@@ -48,6 +50,8 @@ python -m growth_experiment_lab validate-data --config configs/default.toml
 [`docs/synthetic_data.md`](docs/synthetic_data.md)，字段定义见
 [`docs/data_dictionary.md`](docs/data_dictionary.md)。
 数据质量与泄漏边界见 [`docs/data_quality.md`](docs/data_quality.md)。
+实验设计与诊断方法分别见 [`docs/experiment_design.md`](docs/experiment_design.md) 和
+[`docs/randomization_diagnostics.md`](docs/randomization_diagnostics.md)。
 
 ## 验证
 
